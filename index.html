@@ -94,7 +94,7 @@
         </div>
         <div class="detail-row">
           <span>Smart Router</span>
-          <span style="color:#00f0ff;">LI.FI Multi-Chain (moxiswapio)</span>
+          <span style="color:#00f0ff;">LI.FI + Relay Multi-Chain (moxiswapio)</span>
         </div>
       </div>
 
@@ -295,11 +295,11 @@
       var tc = chainData[mode][document.getElementById('to-chain').value];
       var tt = tc.tokens[document.getElementById('to-token').value];
 
-      var estFallback = ((amt * (liveUsd[ft.sym] || 1)) / (liveUsd[tt.sym] || 1)) * 0.997;
+      var estFallback = ((amt * (liveUsd[ft.sym] || 1)) / (liveUsd[tt.sym] || 1)) * 0.998;
       document.getElementById('rec-amt').value = estFallback.toFixed(4);
 
       if (mode === 'testnet') {
-        setStatus('Testnet Bridge Ready (' + fc.name + ' -> ' + tc.name + ')');
+        setStatus('Ready: ' + fc.name + ' -> ' + tc.name + ' Testnet Bridge');
         return;
       }
 
@@ -316,7 +316,7 @@
           currentQuoteTx = data.transactionRequest;
           setStatus('Best Rate via ' + (data.toolDetails ? data.toolDetails.name : 'LI.FI'));
         } else {
-          setStatus('Estimated market rate shown');
+          setStatus('Estimated market rate ready');
         }
       } catch (e) { setStatus('Ready'); }
     }
@@ -327,15 +327,37 @@
       if (amt <= 0) { alert('Enter valid amount'); return; }
 
       if (mode === 'testnet') {
+        var fc = chainData[mode][document.getElementById('from-chain').value];
         var tc = chainData[mode][document.getElementById('to-chain').value];
-        var bridges = { 84532: '0xfd0Bf71F60660E2f608ed56e1659C450eB113120', 11155420: '0xFBb0621E0B23b5478B630BD55a5f21f67730B0F1' };
-        if (!bridges[tc.id]) { setStatus('Select Sepolia -> Base Sepolia or OP Sepolia for L1->L2 Bridge!'); return; }
+        setStatus('Fetching Testnet Bridge route for ' + tc.name + '...');
         try {
-          setStatus('Confirm Testnet Bridge in Wallet...');
-          var hexWei = '0x' + BigInt(Math.floor(amt * 1e18)).toString(16);
-          var tx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: bridges[tc.id], value: hexWei }] });
-          setStatus('Bridge Tx Sent: ' + tx.slice(0, 12) + '...');
-        } catch (e) { setStatus('Transaction cancelled.'); }
+          var rawWei = BigInt(Math.floor(amt * 1e18)).toString();
+          var relayRes = await fetch('https://relay.link', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user: userAddress,
+              originChainId: fc.id,
+              destinationChainId: tc.id,
+              originCurrency: '0x0000000000000000000000000000000000000000',
+              destinationCurrency: '0x0000000000000000000000000000000000000000',
+              amount: rawWei,
+              tradeType: 'EXACT_INPUT'
+            })
+          });
+          var relayData = await relayRes.json();
+          if (relayData.steps && relayData.steps && relayData.steps.items && relayData.steps.items) {
+            var txData = relayData.steps.items.data;
+            setStatus('Confirm ' + tc.name + ' Bridge in Wallet...');
+            var tx = await window.ethereum.request({
+              method: 'eth_sendTransaction',
+              params: [{ from: userAddress, to: txData.to, data: txData.data, value: '0x' + BigInt(txData.value).toString(16) }]
+            });
+            setStatus('Bridge Sent! Hash: ' + tx.slice(0, 12) + '...');
+          } else {
+            setStatus('Route unavailable for this pair. Try Sepolia -> Base/Unichain/Robinhood.');
+          }
+        } catch (e) { setStatus('Bridge cancelled or network error.'); }
         return;
       }
 
@@ -349,25 +371,25 @@
 
     async function loadPrices() {
       try {
-        var res = await fetch('https://kraken.com');
-        var j = await res.json();
-        if (j.result) {
-          var btc = parseFloat(j.result.XXBTZUSD.c);
-          var eth = parseFloat(j.result.XETHZUSD.c);
-          var sol = parseFloat(j.result.SOLUSD.c);
-          liveUsd.BTC = btc; liveUsd.WBTC = btc; liveUsd.ETH = eth; liveUsd.SOL = sol;
-          document.getElementById('ticker').innerHTML =
-            '<div class="coin-tag"><b>BTC</b> $' + btc.toLocaleString(undefined, {maximumFractionDigits:0}) + ' <span class="up">● LIVE</span></div>' +
-            '<div class="coin-tag"><b>ETH</b> $' + eth.toLocaleString(undefined, {maximumFractionDigits:2}) + ' <span class="up">● LIVE</span></div>' +
-            '<div class="coin-tag"><b>SOL</b> $' + sol.toLocaleString(undefined, {maximumFractionDigits:2}) + ' <span class="up">● LIVE</span></div>';
-          getLiveQuote();
-        }
+        var r1 = await fetch('https://coinbase.com');
+        var r2 = await fetch('https://coinbase.com');
+        var r3 = await fetch('https://coinbase.com');
+        var d1 = await r1.json(); var d2 = await r2.json(); var d3 = await r3.json();
+        var btc = parseFloat(d1.data.amount);
+        var eth = parseFloat(d2.data.amount);
+        var sol = parseFloat(d3.data.amount);
+        liveUsd.BTC = btc; liveUsd.WBTC = btc; liveUsd.ETH = eth; liveUsd.SOL = sol;
+        document.getElementById('ticker').innerHTML =
+          '<div class="coin-tag"><b>BTC</b> $' + btc.toLocaleString(undefined, {maximumFractionDigits:0}) + ' <span class="up">● LIVE</span></div>' +
+          '<div class="coin-tag"><b>ETH</b> $' + eth.toLocaleString(undefined, {maximumFractionDigits:2}) + ' <span class="up">● LIVE</span></div>' +
+          '<div class="coin-tag"><b>SOL</b> $' + sol.toLocaleString(undefined, {maximumFractionDigits:2}) + ' <span class="up">● LIVE</span></div>';
+        getLiveQuote();
       } catch (e) {}
     }
 
     switchMode('mainnet');
     loadPrices();
-    setInterval(loadPrices, 10000);
+    setInterval(loadPrices, 15000);
   </script>
 </body>
 </html>
