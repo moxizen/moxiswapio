@@ -2,79 +2,107 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MoxiSwap — Pro Mainnet & Testnet Crypto Swap + Bridge</title>
-  <meta name="description" content="MoxiSwap is a fast, non-custodial multi-chain DEX aggregator and bridge. Swap crypto on Mainnet with lowest fees or bridge Sepolia & Base Testnet tokens.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MoxiSwap — Mainnet DEX & Testnet Bridge</title>
+  <meta name="description" content="Swap crypto on Mainnet with lowest fees or bridge Sepolia & Base Testnet tokens on MoxiSwap.">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background: radial-gradient(circle at top, #181e29 0%, #0b0e11 100%); color: #eaecef; line-height: 1.6; padding: 15px; }
-    .container { max-width: 960px; margin: 0 auto; }
-    header { text-align: center; padding: 25px 0 15px; }
-    .brand { font-size: 36px; font-weight: 800; color: #f0b90b; letter-spacing: 0.5px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #0b0e11; color: #eaecef; line-height: 1.5; }
+    
+    /* টপ নেভিগেশন বার */
+    nav { background: #161a1e; border-bottom: 1px solid #2b3139; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+    .brand { font-size: 24px; font-weight: 800; color: #f0b90b; text-decoration: none; }
     .brand span { color: #ffffff; }
-    p.subtitle { color: #848e9c; font-size: 14px; margin-top: 5px; }
+    .badge { background: rgba(240, 185, 11, 0.15); color: #f0b90b; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1px solid rgba(240, 185, 11, 0.3); }
+
+    .container { max-width: 1050px; margin: 0 auto; padding: 16px; }
     
-    .ad-space { background: rgba(24, 26, 32, 0.8); border: 1px dashed #474d57; padding: 14px; border-radius: 12px; text-align: center; color: #848e9c; font-size: 13px; margin: 15px 0 20px; }
-    
-    .card { background: #161a1e; padding: 20px; border-radius: 16px; margin-bottom: 22px; border: 1px solid #2b3139; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
-    
-    /* প্রফেশনাল ট্যাব বাটন */
-    .tabs { display: flex; gap: 12px; margin-bottom: 18px; background: #0b0e11; padding: 6px; border-radius: 12px; border: 1px solid #2b3139; }
-    .tab-btn { flex: 1; padding: 13px; border: none; border-radius: 9px; font-size: 15px; font-weight: 700; cursor: pointer; background: transparent; color: #848e9c; transition: all 0.25s ease; }
-    .tab-btn:hover { color: #ffffff; }
-    .tab-btn.active { background: #f0b90b; color: #0b0e11; box-shadow: 0 4px 12px rgba(240, 185, 11, 0.3); }
-    
-    /* উইজেট ফ্রেম */
-    .widget-wrap { width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid #2b3139; background: #12151a; }
-    iframe { border: none; width: 100%; height: 660px; display: block; }
+    /* বিজ্ঞাপনের জায়গা */
+    .ad-space { background: #161a1e; border: 1px dashed #3b424c; padding: 12px; border-radius: 10px; text-align: center; color: #848e9c; font-size: 12px; margin-bottom: 18px; }
+
+    /* মেইন সোয়াপ ও ব্রিজ কার্ড */
+    .main-card { background: #161a1e; border-radius: 16px; border: 1px solid #2b3139; padding: 16px; margin-bottom: 20px; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 14px; background: #0b0e11; padding: 5px; border-radius: 12px; }
+    .tab-btn { flex: 1; padding: 12px 8px; border: none; border-radius: 9px; font-size: 14px; font-weight: 700; cursor: pointer; background: transparent; color: #848e9c; transition: 0.2s; }
+    .tab-btn.active { background: #f0b90b; color: #0b0e11; }
+
+    /* টেস্টনেট হেল্প বার ও ফসেট বাটন */
+    .testnet-bar { background: #1e2329; padding: 10px 14px; border-radius: 10px; margin-bottom: 12px; font-size: 13px; color: #eaecef; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; border: 1px solid #2b3139; }
+    .testnet-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .mini-btn { background: #f0b90b; color: #0b0e11; padding: 5px 10px; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 12px; }
+    .mini-btn.secondary { background: #2b3139; color: #eaecef; border: 1px solid #474d57; }
+
+    /* ফুল-স্ক্রিন উইজেট বক্স */
+    .iframe-container { position: relative; width: 100%; height: 680px; border-radius: 12px; overflow: hidden; background: #12151a; border: 1px solid #2b3139; }
+    iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
     .hidden { display: none; }
-    
-    /* SEO সেকশন */
-    .seo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
-    .seo-item { background: #1e2329; padding: 15px; border-radius: 10px; border: 1px solid #2b3139; }
-    .seo-item h3 { color: #f0b90b; font-size: 16px; margin-bottom: 6px; }
-    .seo-item p { font-size: 13.5px; color: #b7bdc6; }
-    
-    @media (max-width: 650px) {
-      .seo-grid { grid-template-columns: 1fr; }
-      iframe { height: 600px; }
+
+    /* মার্কেট চার্ট কার্ড */
+    .chart-card { background: #161a1e; border-radius: 16px; border: 1px solid #2b3139; padding: 16px; margin-bottom: 20px; }
+    .section-title { font-size: 17px; font-weight: 700; margin-bottom: 12px; color: #ffffff; }
+
+    /* SEO তথ্য কার্ড */
+    .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 20px; }
+    .info-box { background: #161a1e; padding: 16px; border-radius: 14px; border: 1px solid #2b3139; }
+    .info-box h3 { color: #f0b90b; font-size: 15px; margin-bottom: 6px; }
+    .info-box p { font-size: 13px; color: #b7bdc6; }
+
+    footer { text-align: center; font-size: 12px; color: #848e9c; padding: 15px 0 25px; border-top: 1px solid #2b3139; }
+
+    @media (max-width: 600px) {
+      .container { padding: 10px; }
+      .main-card { padding: 10px; border-radius: 12px; }
+      .tab-btn { font-size: 13px; padding: 10px 5px; }
+      .iframe-container { height: 620px; }
+      .info-grid { grid-template-columns: 1fr; }
+      .brand { font-size: 20px; }
     }
-    footer { text-align: center; font-size: 12px; color: #848e9c; margin-top: 25px; padding-bottom: 20px; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="brand">⚡ Moxi<span>Swap</span></div>
-      <p class="subtitle">Multi-Chain DEX Aggregator & Free Testnet Bridge • Zero Signup • Non-Custodial</p>
-    </header>
 
-    <!-- বিজ্ঞাপনের জায়গা -->
+  <!-- টপ বার -->
+  <nav>
+    <a href="#" class="brand">⚡ Moxi<span>Swap</span></a>
+    <span class="badge">Non-Custodial Web3</span>
+  </nav>
+
+  <div class="container">
+    <!-- বিজ্ঞাপন বক্স -->
     <div class="ad-space">
       Advertisement Space (A-Ads Crypto Banner)
     </div>
 
-    <!-- মূল ট্রেডিং ও ব্রিজ বক্স -->
-    <div class="card">
+    <!-- মূল ট্রেডিং ও ব্রিজ সেকশন -->
+    <div class="main-card">
       <div class="tabs">
-        <button id="btn-mainnet" class="tab-btn active" onclick="switchMode('mainnet')">🟢 Mainnet Swap & Bridge</button>
-        <button id="btn-testnet" class="tab-btn" onclick="switchMode('testnet')">🧪 Testnet Bridge (Sepolia / L2)</button>
+        <button id="btn-mainnet" class="tab-btn active" onclick="switchMode('mainnet')">🟢 Mainnet Swap</button>
+        <button id="btn-testnet" class="tab-btn" onclick="switchMode('testnet')">🧪 Testnet Bridge</button>
       </div>
 
-      <!-- মেইননেট উইজেট (আপনার নিজস্ব moxiswapio কমিশন লিংকসহ) -->
-      <div id="mainnet-box" class="widget-wrap">
+      <!-- মেইননেট (সরাসরি moxiswapio কমিশন ইন্টিগ্রেশনসহ) -->
+      <div id="mainnet-box" class="iframe-container">
         <iframe src="https://jumper.exchange" allow="clipboard-read; clipboard-write" title="MoxiSwap Mainnet"></iframe>
       </div>
 
-      <!-- টেস্টনেট উইজেট (Superbridge Testnet — একদম পরিষ্কার ও নির্ভুল কাজ করে) -->
-      <div id="testnet-box" class="widget-wrap hidden">
-        <iframe src="https://superbridge.app" allow="clipboard-read; clipboard-write" title="MoxiSwap Testnet Bridge"></iframe>
+      <!-- টেস্টনেট ব্রিজ (নেটওয়ার্ক নির্দেশনা, ফ্রি ফসেট ও ফুল-স্ক্রিন বাটনসহ) -->
+      <div id="testnet-box" class="hidden">
+        <div class="testnet-bar">
+          <span>⚠️ Enable <b>"Show test networks"</b> in MetaMask & select <b>Sepolia</b>.</span>
+          <div class="testnet-actions">
+            <a href="https://google.com" target="_blank" class="mini-btn secondary">💧 Free Sepolia Faucet</a>
+            <a href="https://superbridge.app" target="_blank" class="mini-btn">Full Screen ↗</a>
+          </div>
+        </div>
+        <div class="iframe-container">
+          <iframe src="https://superbridge.app" allow="clipboard-read; clipboard-write" title="MoxiSwap Testnet"></iframe>
+        </div>
       </div>
     </div>
 
-    <!-- কার্যকরী লাইভ মার্কেট প্রাইস চার্ট (TradingView) -->
-    <div class="card">
-      <h2 style="margin-bottom: 14px; font-size: 18px; color: #fff;">📈 Live Crypto Market Overview</h2>
+    <!-- লাইভ ক্রিপ্টো প্রাইস -->
+    <div class="chart-card">
+      <div class="section-title">📈 Live Crypto Prices</div>
       <div class="tradingview-widget-container">
         <div class="tradingview-widget-container__widget"></div>
         <script type="text/javascript" src="https://tradingview.com" async>
@@ -84,19 +112,17 @@
           "showChart": true,
           "locale": "en",
           "width": "100%",
-          "height": "420",
-          "largeChartUrl": "",
+          "height": "400",
           "isTransparent": true,
           "showSymbolLogo": true,
           "tabs": [
             {
-              "title": "Top Crypto",
+              "title": "Market",
               "symbols": [
                 { "s": "BINANCE:BTCUSDT", "d": "Bitcoin" },
                 { "s": "BINANCE:ETHUSDT", "d": "Ethereum" },
                 { "s": "BINANCE:SOLUSDT", "d": "Solana" },
-                { "s": "BINANCE:BNBUSDT", "d": "BNB" },
-                { "s": "BINANCE:ARBUSDT", "d": "Arbitrum" }
+                { "s": "BINANCE:BNBUSDT", "d": "BNB" }
               ]
             }
           ]
@@ -105,23 +131,20 @@
       </div>
     </div>
 
-    <!-- SEO তথ্য -->
-    <div class="card">
-      <h2 style="font-size: 18px; color: #fff; margin-bottom: 12px;">Why Use MoxiSwap?</h2>
-      <div class="seo-grid">
-        <div class="seo-item">
-          <h3>🚀 Best Mainnet Rates</h3>
-          <p>Swap and bridge USDT, ETH, BNB, and SOL across 20+ chains directly from MetaMask or Trust Wallet with zero platform registration.</p>
-        </div>
-        <div class="seo-item">
-          <h3>🧪 Free Testnet Bridge</h3>
-          <p>Bridge Sepolia ETH to Base Sepolia, Optimism Sepolia, and Arbitrum Sepolia effortlessly for Web3 testing and airdrop farming.</p>
-        </div>
+    <!-- ফিচার বক্স -->
+    <div class="info-grid">
+      <div class="info-box">
+        <h3>🚀 Instant Mainnet Aggregator</h3>
+        <p>Trade tokens across Ethereum, BNB Chain, Polygon, Arbitrum, and Base with zero account registration.</p>
+      </div>
+      <div class="info-box">
+        <h3>🧪 Free Sepolia & L2 Testnet</h3>
+        <p>Bridge test ETH across Sepolia, Base Sepolia, and Optimism Sepolia in seconds for Web3 testing.</p>
       </div>
     </div>
 
     <footer>
-      <p>© 2026 MoxiSwap. Non-Custodial Web3 Swap & Bridge Portal.</p>
+      © 2026 MoxiSwap • Decentralized Multi-Chain Interface
     </footer>
   </div>
 
