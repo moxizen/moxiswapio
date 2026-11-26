@@ -2,166 +2,368 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>MoxiSwap — Mainnet DEX & Testnet Bridge</title>
-  <meta name="description" content="Swap crypto on Mainnet with lowest fees or bridge Sepolia & Base Testnet tokens on MoxiSwap.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoxiSwap — Next-Gen Multi-Chain DEX & Testnet Bridge</title>
+  <link href="https://googleapis.com" rel="stylesheet">
   <style>
+    :root {
+      --bg: #07090e;
+      --card: rgba(19, 24, 36, 0.75);
+      --border: rgba(255, 255, 255, 0.08);
+      --accent: #00f0ff;
+      --accent2: #7000ff;
+      --gold: #f5b041;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #0b0e11; color: #eaecef; line-height: 1.5; }
-    
-    /* টপ নেভিগেশন বার */
-    nav { background: #161a1e; border-bottom: 1px solid #2b3139; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
-    .brand { font-size: 24px; font-weight: 800; color: #f0b90b; text-decoration: none; }
-    .brand span { color: #ffffff; }
-    .badge { background: rgba(240, 185, 11, 0.15); color: #f0b90b; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1px solid rgba(240, 185, 11, 0.3); }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(112, 0, 255, 0.18), transparent 35%),
+        radial-gradient(circle at 85% 25%, rgba(0, 240, 255, 0.14), transparent 35%);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
 
-    .container { max-width: 1050px; margin: 0 auto; padding: 16px; }
-    
-    /* বিজ্ঞাপনের জায়গা */
-    .ad-space { background: #161a1e; border: 1px dashed #3b424c; padding: 12px; border-radius: 10px; text-align: center; color: #848e9c; font-size: 12px; margin-bottom: 18px; }
+    /* প্রিমিয়াম গ্লাস নেভিগেশন */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 5%;
+      backdrop-filter: blur(16px);
+      background: rgba(7, 9, 14, 0.7);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #00f0ff, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-stats {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .pill {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 99px;
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .dot { width: 7px; height: 7px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981; }
 
-    /* মেইন সোয়াপ ও ব্রিজ কার্ড */
-    .main-card { background: #161a1e; border-radius: 16px; border: 1px solid #2b3139; padding: 16px; margin-bottom: 20px; }
-    .tabs { display: flex; gap: 8px; margin-bottom: 14px; background: #0b0e11; padding: 5px; border-radius: 12px; }
-    .tab-btn { flex: 1; padding: 12px 8px; border: none; border-radius: 9px; font-size: 14px; font-weight: 700; cursor: pointer; background: transparent; color: #848e9c; transition: 0.2s; }
-    .tab-btn.active { background: #f0b90b; color: #0b0e11; }
+    /* লাইভ প্রাইস টিকার বার */
+    .ticker-wrap {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 14px 5%;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.015);
+      scrollbar-width: none;
+    }
+    .ticker-wrap::-webkit-scrollbar { display: none; }
+    .coin-chip {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+    .up { color: #10b981; font-weight: 600; }
+    .down { color: #ef4444; font-weight: 600; }
 
-    /* টেস্টনেট হেল্প বার ও ফসেট বাটন */
-    .testnet-bar { background: #1e2329; padding: 10px 14px; border-radius: 10px; margin-bottom: 12px; font-size: 13px; color: #eaecef; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; border: 1px solid #2b3139; }
-    .testnet-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .mini-btn { background: #f0b90b; color: #0b0e11; padding: 5px 10px; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 12px; }
-    .mini-btn.secondary { background: #2b3139; color: #eaecef; border: 1px solid #474d57; }
+    /* মেইন লেআউট */
+    .main-wrapper {
+      max-width: 1100px;
+      margin: 25px auto;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 28px;
+      align-items: start;
+    }
 
-    /* ফুল-স্ক্রিন উইজেট বক্স */
-    .iframe-container { position: relative; width: 100%; height: 680px; border-radius: 12px; overflow: hidden; background: #12151a; border: 1px solid #2b3139; }
-    iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
-    .hidden { display: none; }
+    /* বাম পাশের হিরো সেকশন */
+    .hero-side { padding-top: 10px; }
+    .hero-tag {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 20px;
+      background: rgba(0, 240, 255, 0.1);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      border: 1px solid rgba(0, 240, 255, 0.25);
+    }
+    .hero-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 38px;
+      line-height: 1.18;
+      margin-bottom: 14px;
+    }
+    .hero-title span {
+      background: linear-gradient(90deg, #00f0ff, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-desc {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+      margin-bottom: 22px;
+    }
 
-    /* মার্কেট চার্ট কার্ড */
-    .chart-card { background: #161a1e; border-radius: 16px; border: 1px solid #2b3139; padding: 16px; margin-bottom: 20px; }
-    .section-title { font-size: 17px; font-weight: 700; margin-bottom: 12px; color: #ffffff; }
+    .feature-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .f-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 14px;
+      border-radius: 14px;
+    }
+    .f-card h4 { font-size: 14px; color: #fff; margin-bottom: 4px; }
+    .f-card p { font-size: 12px; color: var(--muted); }
 
-    /* SEO তথ্য কার্ড */
-    .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 20px; }
-    .info-box { background: #161a1e; padding: 16px; border-radius: 14px; border: 1px solid #2b3139; }
-    .info-box h3 { color: #f0b90b; font-size: 15px; margin-bottom: 6px; }
-    .info-box p { font-size: 13px; color: #b7bdc6; }
+    /* বিজ্ঞাপনের প্রিমিয়াম স্লট */
+    .ad-box {
+      background: rgba(255,255,255,0.02);
+      border: 1px dashed rgba(255,255,255,0.15);
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
 
-    footer { text-align: center; font-size: 12px; color: #848e9c; padding: 15px 0 25px; border-top: 1px solid #2b3139; }
+    /* ডান পাশের প্রিমিয়াম ট্রেডিং টার্মিনাল */
+    .swap-terminal {
+      background: var(--card);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.65), 0 0 40px rgba(112, 0, 255, 0.12);
+    }
 
-    @media (max-width: 600px) {
-      .container { padding: 10px; }
-      .main-card { padding: 10px; border-radius: 12px; }
-      .tab-btn { font-size: 13px; padding: 10px 5px; }
-      .iframe-container { height: 620px; }
-      .info-grid { grid-template-columns: 1fr; }
-      .brand { font-size: 20px; }
+    .mode-switch {
+      display: flex;
+      background: rgba(0, 0, 0, 0.45);
+      padding: 5px;
+      border-radius: 14px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+    }
+    .mode-btn {
+      flex: 1;
+      padding: 11px;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 13.5px;
+      cursor: pointer;
+      transition: 0.25s;
+    }
+    .mode-btn.active {
+      background: linear-gradient(135deg, #00f0ff, #7000ff);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(0, 240, 255, 0.25);
+    }
+
+    /* কাস্টম বিল্ট-ইন সোয়াপ বক্স */
+    .token-box {
+      background: rgba(10, 13, 20, 0.85);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 10px;
+      transition: 0.2s;
+    }
+    .token-box:focus-within { border-color: var(--accent); }
+    .box-top {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .box-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .amount-input {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      width: 55%;
+      outline: none;
+    }
+    .select-group {
+      display: flex;
+      gap: 6px;
+    }
+    select {
+      background: #1c2230;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .swap-arrow {
+      width: 38px;
+      height: 38px;
+      background: #161c28;
+      border: 2px solid #0b0e14;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: -18px auto;
+      position: relative;
+      z-index: 5;
+      cursor: pointer;
+      color: var(--accent);
+      font-size: 16px;
+    }
+
+    .route-info {
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      padding: 12px;
+      margin: 14px 0;
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .route-row { display: flex; justify-content: space-between; }
+
+    .cta-btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 16px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, #00d2ff 0%, #7000ff 100%);
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 10px 25px rgba(112, 0, 255, 0.35);
+    }
+    .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(0, 240, 255, 0.4); }
+
+    .faucet-links {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .faucet-links a {
+      flex: 1;
+      text-align: center;
+      padding: 9px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    footer {
+      text-align: center;
+      padding: 25px;
+      color: var(--muted);
+      font-size: 12px;
+      border-top: 1px solid var(--border);
+      margin-top: 30px;
+    }
+
+    @media (max-width: 850px) {
+      .main-wrapper { grid-template-columns: 1fr; }
+      .hero-title { font-size: 28px; }
+      .nav-stats .hide-mobile { display: none; }
     }
   </style>
 </head>
 <body>
 
-  <!-- টপ বার -->
+  <!-- টপ নেভিগেশন -->
   <nav>
-    <a href="#" class="brand">⚡ Moxi<span>Swap</span></a>
-    <span class="badge">Non-Custodial Web3</span>
+    <div class="logo">⚡ MoxiSwap</div>
+    <div class="nav-stats">
+      <div class="pill hide-mobile"><span class="dot"></span> All Routers Online</div>
+      <div class="pill">⛽ Gas: 12 Gwei</div>
+    </div>
   </nav>
 
-  <div class="container">
-    <!-- বিজ্ঞাপন বক্স -->
-    <div class="ad-space">
-      Advertisement Space (A-Ads Crypto Banner)
-    </div>
-
-    <!-- মূল ট্রেডিং ও ব্রিজ সেকশন -->
-    <div class="main-card">
-      <div class="tabs">
-        <button id="btn-mainnet" class="tab-btn active" onclick="switchMode('mainnet')">🟢 Mainnet Swap</button>
-        <button id="btn-testnet" class="tab-btn" onclick="switchMode('testnet')">🧪 Testnet Bridge</button>
-      </div>
-
-      <!-- মেইননেট (সরাসরি moxiswapio কমিশন ইন্টিগ্রেশনসহ) -->
-      <div id="mainnet-box" class="iframe-container">
-        <iframe src="https://jumper.exchange" allow="clipboard-read; clipboard-write" title="MoxiSwap Mainnet"></iframe>
-      </div>
-
-      <!-- টেস্টনেট ব্রিজ (নেটওয়ার্ক নির্দেশনা, ফ্রি ফসেট ও ফুল-স্ক্রিন বাটনসহ) -->
-      <div id="testnet-box" class="hidden">
-        <div class="testnet-bar">
-          <span>⚠️ Enable <b>"Show test networks"</b> in MetaMask & select <b>Sepolia</b>.</span>
-          <div class="testnet-actions">
-            <a href="https://google.com" target="_blank" class="mini-btn secondary">💧 Free Sepolia Faucet</a>
-            <a href="https://superbridge.app" target="_blank" class="mini-btn">Full Screen ↗</a>
-          </div>
-        </div>
-        <div class="iframe-container">
-          <iframe src="https://superbridge.app" allow="clipboard-read; clipboard-write" title="MoxiSwap Testnet"></iframe>
-        </div>
-      </div>
-    </div>
-
-    <!-- লাইভ ক্রিপ্টো প্রাইস -->
-    <div class="chart-card">
-      <div class="section-title">📈 Live Crypto Prices</div>
-      <div class="tradingview-widget-container">
-        <div class="tradingview-widget-container__widget"></div>
-        <script type="text/javascript" src="https://tradingview.com" async>
-        {
-          "colorTheme": "dark",
-          "dateRange": "1D",
-          "showChart": true,
-          "locale": "en",
-          "width": "100%",
-          "height": "400",
-          "isTransparent": true,
-          "showSymbolLogo": true,
-          "tabs": [
-            {
-              "title": "Market",
-              "symbols": [
-                { "s": "BINANCE:BTCUSDT", "d": "Bitcoin" },
-                { "s": "BINANCE:ETHUSDT", "d": "Ethereum" },
-                { "s": "BINANCE:SOLUSDT", "d": "Solana" },
-                { "s": "BINANCE:BNBUSDT", "d": "BNB" }
-              ]
-            }
-          ]
-        }
-        </script>
-      </div>
-    </div>
-
-    <!-- ফিচার বক্স -->
-    <div class="info-grid">
-      <div class="info-box">
-        <h3>🚀 Instant Mainnet Aggregator</h3>
-        <p>Trade tokens across Ethereum, BNB Chain, Polygon, Arbitrum, and Base with zero account registration.</p>
-      </div>
-      <div class="info-box">
-        <h3>🧪 Free Sepolia & L2 Testnet</h3>
-        <p>Bridge test ETH across Sepolia, Base Sepolia, and Optimism Sepolia in seconds for Web3 testing.</p>
-      </div>
-    </div>
-
-    <footer>
-      © 2026 MoxiSwap • Decentralized Multi-Chain Interface
-    </footer>
+  <!-- লাইভ ক্রিপ্টো মার্কেট প্রাইস বার (রিয়েল API থেকে ডাটা আসে) -->
+  <div class="ticker-wrap" id="price-ticker">
+    <div class="coin-chip">Loading live prices...</div>
   </div>
 
-  <script>
-    function switchMode(mode) {
-      if (mode === 'mainnet') {
-        document.getElementById('mainnet-box').classList.remove('hidden');
-        document.getElementById('testnet-box').classList.add('hidden');
-        document.getElementById('btn-mainnet').classList.add('active');
-        document.getElementById('btn-testnet').classList.remove('active');
-      } else {
-        document.getElementById('testnet-box').classList.remove('hidden');
-        document.getElementById('mainnet-box').classList.add('hidden');
-        document.getElementById('btn-testnet').classList.add('active');
-        document.getElementById('btn-mainnet').classList.remove('active');
-      }
-    }
-  </script>
-</body>
-</html>
+  <!-- মেইন কন্টেন্ট -->
+  <div class="main-wrapper">
+    
+    <!-- বাম পাশ: ব্র্যান্ড ও তথ্য -->
+    <div class="hero-side">
+      <span class="hero-tag">✨ ZERO SIGNUP • MULTI-CHAIN DEX</span>
+      <h1 class="hero-title">Swap & Bridge Across Chains at <span>Light Speed.</span></h1>
+      <p class="hero-desc">MoxiSwap aggregates liquidity from Uniswap, PancakeSwap, and top L2 bridges to give you the highest output with zero custody risk.</p>
+
+      <div class="feature-cards">
+        <div class="f-card">
+          <h4>⚡ Best Aggregated Rates</h4>
+          <p>Auto-scans 20+ DEXs & bridges for lowest slippage.</p>
+        </div>
+        <div class="f-card">
+          <h4>🧪 Sepolia & L2 Testnets</h4>
+          <p>One-click bridge access for Web3 devs & airdrop hunters.</p>
+        </div>
+      </div>
+
+      <!-- বিজ্ঞাপন স্লট -->
+      <div class="ad-box">
