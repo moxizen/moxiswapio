@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MoxiSwap — Native Multi-Chain DEX & Testnet Bridge</title>
-  <script src="https://jsdelivr.net"></script>
   <link href="https://googleapis.com" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -33,7 +32,6 @@
     .details-box { background: rgba(255, 255, 255, 0.03); border-radius: 12px; padding: 12px; margin: 14px 0; font-size: 12px; color: #9ca3af; }
     .detail-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
     .swap-btn { width: 100%; padding: 15px; border: none; border-radius: 15px; background: linear-gradient(135deg, #00d2ff 0%, #7000ff 100%); color: #ffffff; font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; }
-    .swap-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .status-msg { margin-top: 10px; font-size: 12.5px; text-align: center; color: #00f0ff; min-height: 18px; }
     .faucet-row { display: none; gap: 8px; margin-top: 12px; }
     .faucet-row a { flex: 1; text-align: center; padding: 9px; background: #182030; border: 1px solid rgba(0, 240, 255, 0.25); border-radius: 10px; color: #00f0ff; text-decoration: none; font-size: 12px; font-weight: 600; }
@@ -68,9 +66,7 @@
           <input type="number" id="pay-amt" class="amt-field" value="0.01" min="0" step="any" oninput="getLiveQuote()">
           <div class="selectors">
             <select id="from-chain" onchange="handleChainChange()"></select>
-            <select id="from-token" onchange="getLiveQuote()">
-              <option value="NATIVE">Native (ETH/BNB)</option>
-            </select>
+            <select id="from-token"><option value="NATIVE">Native (ETH/BNB)</option></select>
           </div>
         </div>
       </div>
@@ -80,15 +76,13 @@
       <div class="input-panel">
         <div class="panel-header">
           <span>You Receive (Est.)</span>
-          <span id="route-tag">Direct On-Chain Execution</span>
+          <span>Direct On-Chain</span>
         </div>
         <div class="panel-body">
           <input type="text" id="rec-amt" class="amt-field" value="0.00" readonly>
           <div class="selectors">
             <select id="to-chain" onchange="getLiveQuote()"></select>
-            <select id="to-token" onchange="getLiveQuote()">
-              <option value="NATIVE">Native (ETH/BNB)</option>
-            </select>
+            <select id="to-token"><option value="NATIVE">Native (ETH/BNB)</option></select>
           </div>
         </div>
       </div>
@@ -96,7 +90,7 @@
       <div class="details-box">
         <div class="detail-row">
           <span>Execution Mode</span>
-          <span style="color:#10b981; font-weight:600;">In-App Direct Wallet Pop-up (No Redirect)</span>
+          <span style="color:#10b981; font-weight:600;">In-App Wallet Pop-up</span>
         </div>
         <div class="detail-row">
           <span>Integrator ID</span>
@@ -115,15 +109,12 @@
 
     <footer>© 2026 MoxiSwap • Native Web3 DEX & Cross-Chain Bridge</footer>
   </div>
-
   <script>
-    let mode = 'mainnet';
-    let userAddress = null;
-    let provider = null;
-    let signer = null;
-    let currentQuoteTx = null;
+    var mode = 'mainnet';
+    var userAddress = null;
+    var currentQuoteTx = null;
 
-    const mainChains = [
+    var mainChains = [
       { id: 1, hex: '0x1', name: 'Ethereum' },
       { id: 56, hex: '0x38', name: 'BNB Chain' },
       { id: 137, hex: '0x89', name: 'Polygon' },
@@ -131,160 +122,177 @@
       { id: 8453, hex: '0x2105', name: 'Base' }
     ];
 
-    const testChains = [
+    var testChains = [
       { id: 11155111, hex: '0xaa36a7', name: 'Sepolia' },
       { id: 84532, hex: '0x14a34', name: 'Base Sepolia' },
       { id: 421614, hex: '0x66eee', name: 'Arb Sepolia' },
       { id: 11155420, hex: '0xaa37dc', name: 'OP Sepolia' }
     ];
 
+    function setStatus(msg) {
+      var el = document.getElementById('status-msg');
+      if (el) el.innerText = msg;
+    }
+
     async function connectWallet() {
-      if (!window.ethereum) {
-        alert('MetaMask বা Trust Wallet ব্রাউজার ব্যবহার করুন!');
+      if (typeof window.ethereum === 'undefined') {
+        alert('MetaMask পাওয়া যায়নি! পিসিতে MetaMask এক্সটেনশন অথবা মোবাইলে MetaMask/Trust Wallet অ্যাপের ভেতরের ব্রাউজার দিয়ে ওপেন করুন।');
         return;
       }
       try {
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        signer = provider.getSigner();
-        userAddress = await signer.getAddress();
-        document.getElementById('connect-btn').innerText = '🟢 ' + userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
-        updateBalance();
-        getLiveQuote();
-      } catch (e) {
-        setStatus('Wallet connection cancelled.');
+        setStatus('Connecting wallet...');
+        var accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        if (accounts && accounts.length > 0) {
+          userAddress = accounts[0];
+          document.getElementById('connect-btn').innerText = '🟢 ' + userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
+          updateBalance();
+          getLiveQuote();
+        }
+      } catch (err) {
+        setStatus('Connection cancelled');
       }
     }
 
     async function updateBalance() {
-      if (!provider || !userAddress) return;
-      const bal = await provider.getBalance(userAddress);
-      document.getElementById('bal-label').innerText = 'Bal: ' + parseFloat(ethers.utils.formatEther(bal)).toFixed(4);
-    }
-
-    function setStatus(msg) {
-      document.getElementById('status-msg').innerText = msg;
+      if (!window.ethereum || !userAddress) return;
+      try {
+        var hexBal = await window.ethereum.request({ method: 'eth_getBalance', params: [userAddress, 'latest'] });
+        var ethBal = parseInt(hexBal, 16) / 1e18;
+        document.getElementById('bal-label').innerText = 'Bal: ' + ethBal.toFixed(4);
+      } catch (e) {}
     }
 
     function switchMode(selected) {
       mode = selected;
       document.getElementById('btn-main').classList.toggle('active', mode === 'mainnet');
       document.getElementById('btn-test').classList.toggle('active', mode === 'testnet');
-      const fc = document.getElementById('from-chain');
-      const tc = document.getElementById('to-chain');
-      const list = mode === 'mainnet' ? mainChains : testChains;
-      fc.innerHTML = list.map(c => `<option value="${c.id}" data-hex="${c.hex}">${c.name}</option>`).join('');
-      tc.innerHTML = list.map((c, idx) => `<option value="${c.id}" ${idx === 1 ? 'selected' : ''}>${c.name}</option>`).join('');
+      var fc = document.getElementById('from-chain');
+      var tc = document.getElementById('to-chain');
+      var list = mode === 'mainnet' ? mainChains : testChains;
+      fc.innerHTML = '';
+      tc.innerHTML = '';
+      for (var i = 0; i < list.length; i++) {
+        var opt1 = document.createElement('option');
+        opt1.value = list[i].id;
+        opt1.setAttribute('data-hex', list[i].hex);
+        opt1.text = list[i].name;
+        fc.appendChild(opt1);
+
+        var opt2 = document.createElement('option');
+        opt2.value = list[i].id;
+        opt2.text = list[i].name;
+        if (i === 1) opt2.selected = true;
+        tc.appendChild(opt2);
+      }
       document.getElementById('faucet-links').style.display = mode === 'mainnet' ? 'none' : 'flex';
       handleChainChange();
     }
-
     async function handleChainChange() {
-      const fc = document.getElementById('from-chain');
-      const hexChain = fc.options[fc.selectedIndex].getAttribute('data-hex');
+      var fc = document.getElementById('from-chain');
+      if (!fc.options[fc.selectedIndex]) return;
+      var hexChain = fc.options[fc.selectedIndex].getAttribute('data-hex');
       if (window.ethereum && userAddress) {
         try {
           await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: hexChain }] });
-          provider = new ethers.providers.Web3Provider(window.ethereum);
-          signer = provider.getSigner();
           updateBalance();
         } catch (err) {
-          setStatus('Please switch network in your wallet.');
+          setStatus('Switch network in MetaMask to ' + fc.options[fc.selectedIndex].text);
         }
       }
       getLiveQuote();
     }
 
     function flipChains() {
-      const fc = document.getElementById('from-chain');
-      const tc = document.getElementById('to-chain');
-      const tmp = fc.selectedIndex;
+      var fc = document.getElementById('from-chain');
+      var tc = document.getElementById('to-chain');
+      var tmp = fc.selectedIndex;
       fc.selectedIndex = tc.selectedIndex;
       tc.selectedIndex = tmp;
       handleChainChange();
     }
 
     async function getLiveQuote() {
-      const amt = parseFloat(document.getElementById('pay-amt').value) || 0;
-      const fromChain = document.getElementById('from-chain').value;
-      const toChain = document.getElementById('to-chain').value;
+      var amt = parseFloat(document.getElementById('pay-amt').value) || 0;
+      var fromChain = document.getElementById('from-chain').value;
+      var toChain = document.getElementById('to-chain').value;
       if (amt <= 0) { document.getElementById('rec-amt').value = '0.00'; return; }
 
       if (mode === 'testnet') {
         document.getElementById('rec-amt').value = (amt * 0.999).toFixed(4);
-        setStatus('Testnet Bridge Ready (Sepolia L2 Standard Bridge)');
+        setStatus('Testnet Bridge Ready (Sepolia -> Base/OP Sepolia)');
         return;
       }
 
-      setStatus('Fetching real-time route from LI.FI...');
+      setStatus('Fetching live LI.FI route...');
       try {
-        const weiAmt = ethers.utils.parseEther(amt.toString()).toString();
-        const fromAddr = userAddress || '0x0000000000000000000000000000000000000001';
-        const url = `https://li.quest{fromChain}&toChain=${toChain}&fromToken=0x0000000000000000000000000000000000000000&toToken=0x0000000000000000000000000000000000000000&fromAmount=${weiAmt}&fromAddress=${fromAddr}&integrator=moxiswapio`;
-        const res = await fetch(url);
-        const data = await res.json();
+        var weiAmt = BigInt(Math.floor(amt * 1e18)).toString();
+        var fromAddr = userAddress || '0x0000000000000000000000000000000000000001';
+        var url = 'https://li.quest' + fromChain + '&toChain=' + toChain + '&fromToken=0x0000000000000000000000000000000000000000&toToken=0x0000000000000000000000000000000000000000&fromAmount=' + weiAmt + '&fromAddress=' + fromAddr + '&integrator=moxiswapio';
+        var res = await fetch(url);
+        var data = await res.json();
         if (data.estimate && data.estimate.toAmount) {
-          const outEth = ethers.utils.formatEther(data.estimate.toAmount);
-          document.getElementById('rec-amt').value = parseFloat(outEth).toFixed(5);
+          var outEth = Number(data.estimate.toAmount) / 1e18;
+          document.getElementById('rec-amt').value = outEth.toFixed(5);
           currentQuoteTx = data.transactionRequest;
-          setStatus('Route Ready via ' + (data.toolDetails?.name || 'LI.FI'));
+          setStatus('Route Ready via ' + (data.toolDetails ? data.toolDetails.name : 'LI.FI'));
         } else {
-          document.getElementById('rec-amt').value = 'No Route';
-          setStatus(data.message || 'Try a different amount or network.');
+          document.getElementById('rec-amt').value = '0.00';
+          setStatus('Select different chains or higher amount');
         }
       } catch (e) {
-        setStatus('Ready to connect wallet for quote.');
+        setStatus('Ready to swap');
       }
     }
 
     async function executeInAppTrade() {
-      if (!userAddress || !signer) {
-        await connectWallet();
-        return;
-      }
+      if (!userAddress) { await connectWallet(); return; }
+      var amt = parseFloat(document.getElementById('pay-amt').value) || 0;
+      if (amt <= 0) { alert('Enter valid amount'); return; }
+      var hexWei = '0x' + BigInt(Math.floor(amt * 1e18)).toString(16);
+
       if (mode === 'testnet') {
-        // সরাসরি Sepolia থেকে Base Sepolia অফিসিয়াল L2 ব্রিজ কন্ট্রাক্টে ইন-অ্যাপ ট্রানজ্যাকশন
-        const amt = document.getElementById('pay-amt').value;
-        const toChain = document.getElementById('to-chain').value;
-        const bridgeContracts = {
-          '84532': '0xfd0Bf71F60660E2f608ed56e1659C450eB113120', // Base Sepolia L1 Standard Bridge
-          '11155420': '0xFBb0621E0B23b5478B630BD55a5f21f67730B0F1' // OP Sepolia L1 Standard Bridge
-        };
-        const targetBridge = bridgeContracts[toChain];
-        if (!targetBridge) {
-          setStatus('Select Sepolia -> Base Sepolia or OP Sepolia for direct bridge!');
-          return;
-        }
+        var toChain = document.getElementById('to-chain').value;
+        var bridges = { '84532': '0xfd0Bf71F60660E2f608ed56e1659C450eB113120', '11155420': '0xFBb0621E0B23b5478B630BD55a5f21f67730B0F1' };
+        var target = bridges[toChain];
+        if (!target) { setStatus('Select Sepolia -> Base Sepolia or OP Sepolia!'); return; }
         try {
-          setStatus('Confirm Testnet Bridge in your wallet...');
-          const tx = await signer.sendTransaction({
-            to: targetBridge,
-            value: ethers.utils.parseEther(amt.toString())
-          });
-          setStatus('Bridge Tx Sent! Hash: ' + tx.hash.slice(0, 12) + '...');
-        } catch (err) {
-          setStatus('Transaction cancelled or insufficient Sepolia ETH.');
-        }
+          setStatus('Confirm Testnet Bridge in MetaMask...');
+          var txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: target, value: hexWei }] });
+          setStatus('Bridge Sent! Hash: ' + txHash.slice(0, 12) + '...');
+        } catch (err) { setStatus('Cancelled or low Sepolia ETH.'); }
         return;
       }
 
-      if (!currentQuoteTx) {
-        await getLiveQuote();
-        if (!currentQuoteTx) return;
-      }
+      if (!currentQuoteTx) { await getLiveQuote(); if (!currentQuoteTx) return; }
       try {
-        setStatus('Confirm Mainnet Swap in your wallet...');
-        const tx = await signer.sendTransaction({
-          to: currentQuoteTx.to,
-          data: currentQuoteTx.data,
-          value: currentQuoteTx.value
-        });
-        setStatus('Swap Submitted! Hash: ' + tx.hash.slice(0, 12) + '...');
-      } catch (err) {
-        setStatus('Swap rejected or insufficient gas.');
+        setStatus('Confirm Swap in MetaMask...');
+        var swapHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: currentQuoteTx.to, data: currentQuoteTx.data, value: currentQuoteTx.value }] });
+        setStatus('Swap Sent! Hash: ' + swapHash.slice(0, 12) + '...');
+      } catch (err) { setStatus('Swap rejected or low balance.'); }
+    }
+
+    async function loadLivePrices() {
+      try {
+        var res = await fetch('https://cryptocompare.com');
+        var json = await res.json();
+        var raw = json.RAW;
+        var coins = ['BTC', 'ETH', 'SOL', 'BNB'];
+        var html = '';
+        for (var i = 0; i < coins.length; i++) {
+          var s = coins[i];
+          var p = raw[s].USD.PRICE;
+          var chg = raw[s].USD.CHANGEPCT24HOUR.toFixed(2);
+          html += '<div class="coin-tag"><b>' + s + '</b> $' + p.toLocaleString(undefined, {maximumFractionDigits: 2}) + ' <span class="' + (chg >= 0 ? 'up' : 'down') + '">' + (chg >= 0 ? '+' : '') + chg + '%</span></div>';
+        }
+        document.getElementById('ticker').innerHTML = html;
+      } catch (e) {
+        document.getElementById('ticker').innerHTML = '<div class="coin-tag">🟢 Multi-Chain Live Market</div>';
       }
     }
 
-    async function fetchBinanceLive() {
-      try {
-        const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT'];
+    switchMode('mainnet');
+    loadLivePrices();
+    setInterval(loadLivePrices, 10000);
+  </script>
+</body>
+</html>
