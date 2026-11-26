@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoxiSwap — Fast Mainnet & Testnet Crypto Swap + Bridge</title>
+  <meta name="description" content="MoxiSwap is a fast, non-custodial multi-chain DEX aggregator and bridge. Swap crypto on Mainnet with lowest fees or bridge Sepolia & Base Testnet tokens.">
+  <meta name="keywords" content="MoxiSwap, MoxiBridge, crypto swap, testnet bridge, Sepolia bridge, Base Sepolia bridge, DEX aggregator, swap USDT to ETH">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #0b0e11; color: #eaecef; line-height: 1.6; padding: 15px; }
+    .container { max-width: 900px; margin: 0 auto; }
+    header { text-align: center; padding: 20px 0; }
+    .brand { font-size: 32px; font-weight: 800; color: #f0b90b; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .brand span { color: #ffffff; }
+    p.subtitle { color: #848e9c; font-size: 14px; }
+    .box { background: #1e2329; padding: 20px; border-radius: 14px; margin-bottom: 20px; border: 1px solid #2b3139; }
+    .ad-space { background: #181a20; border: 1px dashed #474d57; padding: 15px; border-radius: 10px; text-align: center; color: #848e9c; font-size: 13px; margin-bottom: 20px; }
+    .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+    .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; background: #2b3139; color: #eaecef; transition: 0.3s; }
+    .tab-btn.active { background: #f0b90b; color: #0b0e11; }
+    iframe { border: none; border-radius: 10px; width: 100%; height: 580px; background: #12151a; }
+    .hidden { display: none; }
+    .seo-text { font-size: 14px; color: #b7bdc6; }
+    .seo-text h2 { font-size: 18px; color: #ffffff; margin-bottom: 8px; }
+    .seo-text h3 { color: #f0b90b; margin: 12px 0 6px; font-size: 16px; }
+    footer { text-align: center; font-size: 12px; color: #848e9c; margin-top: 25px; padding-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">⚡ Moxi<span>Swap</span></div>
+      <p class="subtitle">Multi-Chain Mainnet Swap & Free Testnet Bridge • Zero Signup • Non-Custodial</p>
+    </header>
+
+    <!-- ১. বিজ্ঞাপনের জায়গা (A-Ads কোড এখানে বসাবেন) -->
+    <div class="ad-space">
+      Advertisement Space (A-Ads Crypto Banner)
+    </div>
+
+    <!-- ২. মেইননেট ও টেস্টনেট সুইচ করার মূল বক্স -->
+    <div class="box">
+      <div class="tabs">
+        <button id="btn-mainnet" class="tab-btn active" onclick="switchMode('mainnet')">🟢 Mainnet Swap & Bridge</button>
+        <button id="btn-testnet" class="tab-btn" onclick="switchMode('testnet')">🧪 Testnet Bridge (Sepolia/Base)</button>
+      </div>
+
+      <!-- মেইননেট উইজেট -->
+      <div id="mainnet-box">
+        <iframe src="https://jumper.exchange" title="MoxiSwap Mainnet Swap"></iframe>
+      </div>
+
+      <!-- টেস্টনেট উইজেট -->
+      <div id="testnet-box" class="hidden">
+        <iframe src="https://brid.gg" title="MoxiSwap Testnet Bridge"></iframe>
+      </div>
+    </div>
+
+    <!-- ৩. লাইভ ক্রিপ্টো মার্কেট প্রাইস -->
+    <div class="box">
+      <h2 style="margin-bottom: 12px; font-size: 18px;">📈 Live Crypto Market Prices</h2>
+      <script src="https://coingecko.com"></script>
+      <gecko-coin-list-widget locale="en" dark-mode="true" coin-ids="bitcoin,ethereum,tether,solana,binancecoin,arbitrum,optimism" initial-currency="usd"></gecko-coin-list-widget>
+    </div>
+
+    <!-- ৪. গুগল SEO-এর জন্য কন্টেন্ট -->
+    <div class="box seo-text">
+      <h2>Why Trade and Bridge on MoxiSwap?</h2>
+      <p>MoxiSwap connects you directly to top decentralized liquidity pools so you can swap and bridge tokens across Ethereum, BNB Chain, Polygon, Arbitrum, and Base without creating an account.</p>
+      <h3>Free Sepolia & L2 Testnet Bridge</h3>
+      <p>Testing smart contracts or hunting Web3 airdrops? Switch to the MoxiSwap Testnet tab to bridge Sepolia ETH to Base Sepolia, Optimism Sepolia, and Arbitrum Sepolia in seconds.</p>
+    </div>
+
+    <footer>
+      <p>© 2026 MoxiSwap. Non-Custodial Web3 Swap & Bridge Aggregator.</p>
+    </footer>
+  </div>
+
+  <script>
+    function switchMode(mode) {
+      if (mode === 'mainnet') {
+        document.getElementById('mainnet-box').classList.remove('hidden');
+        document.getElementById('testnet-box').classList.add('hidden');
+        document.getElementById('btn-mainnet').classList.add('active');
+        document.getElementById('btn-testnet').classList.remove('active');
+      } else {
+        document.getElementById('testnet-box').classList.remove('hidden');
+        document.getElementById('mainnet-box').classList.add('hidden');
+        document.getElementById('btn-testnet').classList.add('active');
+        document.getElementById('btn-mainnet').classList.remove('active');
+      }
+    }
+  </script>
+</body>
+</html>
