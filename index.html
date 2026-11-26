@@ -3,367 +3,212 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MoxiSwap — Next-Gen Multi-Chain DEX & Testnet Bridge</title>
+  <title>MoxiSwap — Multi-Chain DEX & Testnet Bridge</title>
   <link href="https://googleapis.com" rel="stylesheet">
   <style>
-    :root {
-      --bg: #07090e;
-      --card: rgba(19, 24, 36, 0.75);
-      --border: rgba(255, 255, 255, 0.08);
-      --accent: #00f0ff;
-      --accent2: #7000ff;
-      --gold: #f5b041;
-      --text: #f3f4f6;
-      --muted: #9ca3af;
-    }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Inter', sans-serif;
-      background-color: var(--bg);
+      background-color: #07090e;
       background-image: 
-        radial-gradient(circle at 15% 15%, rgba(112, 0, 255, 0.18), transparent 35%),
-        radial-gradient(circle at 85% 25%, rgba(0, 240, 255, 0.14), transparent 35%);
-      color: var(--text);
+        radial-gradient(circle at 20% 20%, rgba(112, 0, 255, 0.22), transparent 40%),
+        radial-gradient(circle at 80% 30%, rgba(0, 240, 255, 0.16), transparent 40%);
+      color: #f3f4f6;
       min-height: 100vh;
-      overflow-x: hidden;
     }
-
-    /* প্রিমিয়াম গ্লাস নেভিগেশন */
     nav {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 16px 5%;
-      backdrop-filter: blur(16px);
-      background: rgba(7, 9, 14, 0.7);
-      border-bottom: 1px solid var(--border);
+      padding: 15px 5%;
+      background: rgba(11, 14, 22, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 50;
     }
-    .logo {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 24px;
-      font-weight: 700;
-      background: linear-gradient(90deg, #00f0ff, #a855f7);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .nav-stats {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-    .pill {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid var(--border);
-      padding: 6px 12px;
-      border-radius: 99px;
-      font-size: 12px;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .dot { width: 7px; height: 7px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981; }
-
-    /* লাইভ প্রাইস টিকার বার */
-    .ticker-wrap {
-      display: flex;
-      gap: 12px;
-      overflow-x: auto;
-      padding: 14px 5%;
-      border-bottom: 1px solid var(--border);
-      background: rgba(255,255,255,0.015);
-      scrollbar-width: none;
-    }
-    .ticker-wrap::-webkit-scrollbar { display: none; }
-    .coin-chip {
-      background: var(--card);
-      border: 1px solid var(--border);
-      padding: 8px 14px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      white-space: nowrap;
-      font-size: 13px;
-    }
+    .logo { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700; color: #00f0ff; }
+    .logo span { color: #ffffff; }
+    .status-pill { background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); color: #10b981; padding: 5px 12px; border-radius: 99px; font-size: 12px; font-weight: 600; }
+    .ticker-bar { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; padding: 12px 16px; background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+    .coin-tag { background: #121722; border: 1px solid rgba(255, 255, 255, 0.08); padding: 6px 12px; border-radius: 10px; font-size: 12.5px; display: flex; align-items: center; gap: 6px; }
     .up { color: #10b981; font-weight: 600; }
     .down { color: #ef4444; font-weight: 600; }
-
-    /* মেইন লেআউট */
-    .main-wrapper {
-      max-width: 1100px;
-      margin: 25px auto;
-      padding: 0 16px;
-      display: grid;
-      grid-template-columns: 1fr 1.15fr;
-      gap: 28px;
-      align-items: start;
-    }
-
-    /* বাম পাশের হিরো সেকশন */
-    .hero-side { padding-top: 10px; }
-    .hero-tag {
-      display: inline-block;
-      padding: 5px 12px;
-      border-radius: 20px;
-      background: rgba(0, 240, 255, 0.1);
-      color: var(--accent);
-      font-size: 12px;
-      font-weight: 600;
-      margin-bottom: 14px;
-      border: 1px solid rgba(0, 240, 255, 0.25);
-    }
-    .hero-title {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 38px;
-      line-height: 1.18;
-      margin-bottom: 14px;
-    }
-    .hero-title span {
-      background: linear-gradient(90deg, #00f0ff, #c084fc);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .hero-desc {
-      color: var(--muted);
-      font-size: 15px;
-      line-height: 1.6;
-      margin-bottom: 22px;
-    }
-
-    .feature-cards {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-    .f-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      padding: 14px;
-      border-radius: 14px;
-    }
-    .f-card h4 { font-size: 14px; color: #fff; margin-bottom: 4px; }
-    .f-card p { font-size: 12px; color: var(--muted); }
-
-    /* বিজ্ঞাপনের প্রিমিয়াম স্লট */
-    .ad-box {
-      background: rgba(255,255,255,0.02);
-      border: 1px dashed rgba(255,255,255,0.15);
-      border-radius: 14px;
-      padding: 14px;
-      text-align: center;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    /* ডান পাশের প্রিমিয়াম ট্রেডিং টার্মিনাল */
-    .swap-terminal {
-      background: var(--card);
-      backdrop-filter: blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 24px;
-      padding: 20px;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.65), 0 0 40px rgba(112, 0, 255, 0.12);
-    }
-
-    .mode-switch {
-      display: flex;
-      background: rgba(0, 0, 0, 0.45);
-      padding: 5px;
-      border-radius: 14px;
-      margin-bottom: 16px;
-      border: 1px solid var(--border);
-    }
-    .mode-btn {
-      flex: 1;
-      padding: 11px;
-      border: none;
-      border-radius: 10px;
-      background: transparent;
-      color: var(--muted);
-      font-weight: 600;
-      font-size: 13.5px;
-      cursor: pointer;
-      transition: 0.25s;
-    }
-    .mode-btn.active {
-      background: linear-gradient(135deg, #00f0ff, #7000ff);
-      color: #fff;
-      box-shadow: 0 4px 15px rgba(0, 240, 255, 0.25);
-    }
-
-    /* কাস্টম বিল্ট-ইন সোয়াপ বক্স */
-    .token-box {
-      background: rgba(10, 13, 20, 0.85);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 10px;
-      transition: 0.2s;
-    }
-    .token-box:focus-within { border-color: var(--accent); }
-    .box-top {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 10px;
-    }
-    .box-main {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-    }
-    .amount-input {
-      background: transparent;
-      border: none;
-      color: #fff;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 28px;
-      font-weight: 700;
-      width: 55%;
-      outline: none;
-    }
-    .select-group {
-      display: flex;
-      gap: 6px;
-    }
-    select {
-      background: #1c2230;
-      color: #fff;
-      border: 1px solid rgba(255,255,255,0.12);
-      padding: 8px 10px;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      outline: none;
-    }
-
-    .swap-arrow {
-      width: 38px;
-      height: 38px;
-      background: #161c28;
-      border: 2px solid #0b0e14;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: -18px auto;
-      position: relative;
-      z-index: 5;
-      cursor: pointer;
-      color: var(--accent);
-      font-size: 16px;
-    }
-
-    .route-info {
-      background: rgba(255,255,255,0.03);
-      border-radius: 12px;
-      padding: 12px;
-      margin: 14px 0;
-      font-size: 12px;
-      color: var(--muted);
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .route-row { display: flex; justify-content: space-between; }
-
-    .cta-btn {
-      width: 100%;
-      padding: 16px;
-      border: none;
-      border-radius: 16px;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 16px;
-      font-weight: 700;
-      color: #fff;
-      background: linear-gradient(135deg, #00d2ff 0%, #7000ff 100%);
-      cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.2s;
-      box-shadow: 0 10px 25px rgba(112, 0, 255, 0.35);
-    }
-    .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(0, 240, 255, 0.4); }
-
-    .faucet-links {
-      display: flex;
-      gap: 8px;
-      margin-top: 12px;
-    }
-    .faucet-links a {
-      flex: 1;
-      text-align: center;
-      padding: 9px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: var(--accent);
-      text-decoration: none;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    footer {
-      text-align: center;
-      padding: 25px;
-      color: var(--muted);
-      font-size: 12px;
-      border-top: 1px solid var(--border);
-      margin-top: 30px;
-    }
-
-    @media (max-width: 850px) {
-      .main-wrapper { grid-template-columns: 1fr; }
-      .hero-title { font-size: 28px; }
-      .nav-stats .hide-mobile { display: none; }
-    }
+    .container { max-width: 500px; margin: 28px auto; padding: 0 15px; }
+    .ad-slot { background: rgba(255, 255, 255, 0.02); border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 12px; text-align: center; font-size: 12px; color: #9ca3af; margin-bottom: 20px; }
+    .swap-card { background: #111622; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 24px; padding: 20px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 35px rgba(0, 240, 255, 0.08); }
+    .tabs { display: flex; background: #080b11; padding: 5px; border-radius: 14px; margin-bottom: 18px; border: 1px solid rgba(255, 255, 255, 0.06); }
+    .tab-btn { flex: 1; padding: 11px; border: none; border-radius: 10px; background: transparent; color: #9ca3af; font-size: 13.5px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+    .tab-btn.active { background: linear-gradient(135deg, #00d2ff, #7000ff); color: #ffffff; box-shadow: 0 4px 15px rgba(112, 0, 255, 0.35); }
+    .input-panel { background: #090c13; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 15px; margin-bottom: 8px; }
+    .input-panel:focus-within { border-color: #00f0ff; }
+    .panel-header { display: flex; justify-content: space-between; font-size: 12px; color: #9ca3af; margin-bottom: 10px; }
+    .panel-body { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .amt-field { background: transparent; border: none; color: #ffffff; font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 700; width: 50%; outline: none; }
+    .selectors { display: flex; gap: 6px; }
+    select { background: #1a2130; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.12); padding: 8px 9px; border-radius: 10px; font-size: 12.5px; font-weight: 600; cursor: pointer; outline: none; }
+    .flip-btn { width: 36px; height: 36px; background: #1a2130; border: 3px solid #111622; border-radius: 12px; color: #00f0ff; font-size: 16px; display: flex; align-items: center; justify-content: center; margin: -16px auto; position: relative; z-index: 10; cursor: pointer; }
+    .details-box { background: rgba(255, 255, 255, 0.03); border-radius: 12px; padding: 12px; margin: 14px 0; font-size: 12px; color: #9ca3af; }
+    .detail-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+    .detail-row:last-child { margin-bottom: 0; }
+    .swap-btn { width: 100%; padding: 15px; border: none; border-radius: 15px; background: linear-gradient(135deg, #00d2ff 0%, #7000ff 100%); color: #ffffff; font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 25px rgba(112, 0, 255, 0.4); }
+    .faucet-row { display: none; gap: 8px; margin-top: 12px; }
+    .faucet-row a { flex: 1; text-align: center; padding: 9px; background: #182030; border: 1px solid rgba(0, 240, 255, 0.25); border-radius: 10px; color: #00f0ff; text-decoration: none; font-size: 12px; font-weight: 600; }
+    footer { text-align: center; font-size: 12px; color: #6b7280; margin: 25px 0; }
   </style>
 </head>
 <body>
-
-  <!-- টপ নেভিগেশন -->
   <nav>
-    <div class="logo">⚡ MoxiSwap</div>
-    <div class="nav-stats">
-      <div class="pill hide-mobile"><span class="dot"></span> All Routers Online</div>
-      <div class="pill">⛽ Gas: 12 Gwei</div>
-    </div>
+    <div class="logo">⚡ Moxi<span>Swap</span></div>
+    <div class="status-pill">● Aggregator Live</div>
   </nav>
 
-  <!-- লাইভ ক্রিপ্টো মার্কেট প্রাইস বার (রিয়েল API থেকে ডাটা আসে) -->
-  <div class="ticker-wrap" id="price-ticker">
-    <div class="coin-chip">Loading live prices...</div>
+  <div class="ticker-bar" id="ticker">
+    <div class="coin-tag"><b>BTC</b> $92,450 <span class="up">+2.1%</span></div>
+    <div class="coin-tag"><b>ETH</b> $3,180 <span class="up">+1.8%</span></div>
+    <div class="coin-tag"><b>SOL</b> $188 <span class="up">+4.2%</span></div>
+    <div class="coin-tag"><b>BNB</b> $625 <span class="up">+0.9%</span></div>
   </div>
 
-  <!-- মেইন কন্টেন্ট -->
-  <div class="main-wrapper">
-    
-    <!-- বাম পাশ: ব্র্যান্ড ও তথ্য -->
-    <div class="hero-side">
-      <span class="hero-tag">✨ ZERO SIGNUP • MULTI-CHAIN DEX</span>
-      <h1 class="hero-title">Swap & Bridge Across Chains at <span>Light Speed.</span></h1>
-      <p class="hero-desc">MoxiSwap aggregates liquidity from Uniswap, PancakeSwap, and top L2 bridges to give you the highest output with zero custody risk.</p>
+  <div class="container">
+    <div class="ad-slot">Advertisement Space (A-Ads Crypto Banner)</div>
 
-      <div class="feature-cards">
-        <div class="f-card">
-          <h4>⚡ Best Aggregated Rates</h4>
-          <p>Auto-scans 20+ DEXs & bridges for lowest slippage.</p>
+    <div class="swap-card">
+      <div class="tabs">
+        <button id="btn-main" class="tab-btn active" onclick="switchMode('mainnet')">🟢 Mainnet Swap</button>
+        <button id="btn-test" class="tab-btn" onclick="switchMode('testnet')">🧪 Testnet Bridge</button>
+      </div>
+
+      <div class="input-panel">
+        <div class="panel-header">
+          <span>You Pay</span>
+          <span id="mode-tag">Mainnet Network</span>
         </div>
-        <div class="f-card">
-          <h4>🧪 Sepolia & L2 Testnets</h4>
-          <p>One-click bridge access for Web3 devs & airdrop hunters.</p>
+        <div class="panel-body">
+          <input type="number" id="pay-amt" class="amt-field" value="1" min="0" step="any" oninput="calcRate()">
+          <div class="selectors">
+            <select id="from-chain"></select>
+            <select id="from-token" onchange="calcRate()">
+              <option value="ETH">ETH</option>
+              <option value="USDT">USDT</option>
+              <option value="BNB">BNB</option>
+              <option value="USDC">USDC</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      <!-- বিজ্ঞাপন স্লট -->
-      <div class="ad-box">
+      <div class="flip-btn" onclick="flipTokens()">⇅</div>
+
+      <div class="input-panel">
+        <div class="panel-header">
+          <span>You Receive (Est.)</span>
+          <span>Zero Platform Fee</span>
+        </div>
+        <div class="panel-body">
+          <input type="text" id="rec-amt" class="amt-field" value="3170.46" readonly>
+          <div class="selectors">
+            <select id="to-chain"></select>
+            <select id="to-token" onchange="calcRate()">
+              <option value="USDT">USDT</option>
+              <option value="ETH">ETH</option>
+              <option value="USDC">USDC</option>
+              <option value="BNB">BNB</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="details-box">
+        <div class="detail-row">
+          <span>Smart Router</span>
+          <span style="color:#00f0ff; font-weight:600;" id="router-label">LI.FI Aggregator (moxiswapio)</span>
+        </div>
+        <div class="detail-row">
+          <span>Execution Speed</span>
+          <span>~15 Seconds</span>
+        </div>
+      </div>
+
+      <button class="swap-btn" id="main-cta" onclick="launchTrade()">⚡ Swap & Bridge Now</button>
+
+      <div class="faucet-row" id="faucet-links">
+        <a href="https://google.com" target="_blank">💧 Sepolia Faucet</a>
+        <a href="https://alchemy.com" target="_blank">💧 Base Sepolia Faucet</a>
+      </div>
+    </div>
+
+    <footer>© 2026 MoxiSwap • Non-Custodial Multi-Chain DEX & Bridge</footer>
+  </div>
+
+  <script>
+    let mode = 'mainnet';
+    let prices = { ETH: 3180, BTC: 92450, SOL: 188, BNB: 625, USDT: 1, USDC: 1 };
+    const mainChains = [
+      { id: '1', name: 'Ethereum' }, { id: '56', name: 'BNB Chain' },
+      { id: '137', name: 'Polygon' }, { id: '42161', name: 'Arbitrum' }, { id: '8453', name: 'Base' }
+    ];
+    const testChains = [
+      { id: '11155111', name: 'Sepolia' }, { id: '84532', name: 'Base Sepolia' },
+      { id: '421614', name: 'Arb Sepolia' }, { id: '11155420', name: 'OP Sepolia' }
+    ];
+
+    function switchMode(selected) {
+      mode = selected;
+      document.getElementById('btn-main').classList.toggle('active', mode === 'mainnet');
+      document.getElementById('btn-test').classList.toggle('active', mode === 'testnet');
+      const fc = document.getElementById('from-chain');
+      const tc = document.getElementById('to-chain');
+      const list = mode === 'mainnet' ? mainChains : testChains;
+      fc.innerHTML = list.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      tc.innerHTML = list.map((c, idx) => `<option value="${c.id}" ${idx === 1 ? 'selected' : ''}>${c.name}</option>`).join('');
+      document.getElementById('mode-tag').innerText = mode === 'mainnet' ? 'Mainnet Network' : 'Testnet Network';
+      document.getElementById('router-label').innerText = mode === 'mainnet' ? 'LI.FI Aggregator (moxiswapio)' : 'Superbridge Testnet Router';
+      document.getElementById('main-cta').innerText = mode === 'mainnet' ? '⚡ Swap & Bridge Now' : '🧪 Bridge Testnet Tokens';
+      document.getElementById('faucet-links').style.display = mode === 'mainnet' ? 'none' : 'flex';
+      calcRate();
+    }
+
+    function calcRate() {
+      const val = parseFloat(document.getElementById('pay-amt').value) || 0;
+      const ft = document.getElementById('from-token').value;
+      const tt = document.getElementById('to-token').value;
+      const res = ((val * prices[ft]) / prices[tt]) * 0.997;
+      document.getElementById('rec-amt').value = res > 0 ? res.toFixed(4) : '0.00';
+    }
+
+    function flipTokens() {
+      const f = document.getElementById('from-token');
+      const t = document.getElementById('to-token');
+      const tmp = f.value; f.value = t.value; t.value = tmp;
+      calcRate();
+    }
+
+    function launchTrade() {
+      if (mode === 'mainnet') {
+        const fc = document.getElementById('from-chain').value;
+        const tc = document.getElementById('to-chain').value;
+        window.open(`https://jumper.exchange{fc}&toChain=${tc}&integrator=moxiswapio`, '_blank');
+      } else {
+        window.open('https://superbridge.app', '_blank');
+      }
+    }
+
+    fetch('https://coingecko.com')
+      .then(r => r.json()).then(d => {
+        if (d.ethereum) {
+          prices.ETH = d.ethereum.usd; prices.BTC = d.bitcoin.usd; prices.SOL = d.solana.usd; prices.BNB = d.binancecoin.usd;
+          const items = [{ s: 'BTC', p: d.bitcoin }, { s: 'ETH', p: d.ethereum }, { s: 'SOL', p: d.solana }, { s: 'BNB', p: d.binancecoin }];
+          document.getElementById('ticker').innerHTML = items.map(i => {
+            const c = i.p.usd_24h_change.toFixed(2);
+            return `<div class="coin-tag"><b>${i.s}</b> $${i.p.usd.toLocaleString()} <span class="${c>=0?'up':'down'}">${c>=0?'+':''}${c}%</span></div>`;
+          }).join('');
+          calcRate();
+        }
+      }).catch(() => {});
+
+    switchMode('mainnet');
+  </script>
+</body>
+</html>
