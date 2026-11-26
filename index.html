@@ -15,7 +15,6 @@
     .ticker-bar { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; padding: 12px 16px; background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
     .coin-tag { background: #121722; border: 1px solid rgba(255, 255, 255, 0.08); padding: 6px 12px; border-radius: 10px; font-size: 12.5px; display: flex; align-items: center; gap: 6px; }
     .up { color: #10b981; font-weight: 600; }
-    .down { color: #ef4444; font-weight: 600; }
     .container { max-width: 500px; margin: 24px auto; padding: 0 15px; }
     .ad-slot { background: rgba(255, 255, 255, 0.02); border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 12px; text-align: center; font-size: 12px; color: #9ca3af; margin-bottom: 18px; }
     .swap-card { background: #111622; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 24px; padding: 20px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7); }
@@ -77,13 +76,13 @@
       <div class="input-panel">
         <div class="panel-header">
           <span>You Receive (Est.)</span>
-          <span>Bal: <b id="to-bal">0.0000</b></span>
+          <span>Direct On-Chain</span>
         </div>
         <div class="panel-body">
           <input type="text" id="rec-amt" class="amt-field" value="0.00" readonly>
           <div class="selectors">
             <select id="to-chain" onchange="populateTokens('to'); getLiveQuote();"></select>
-            <select id="to-token" onchange="updateBalances(); getLiveQuote();"></select>
+            <select id="to-token" onchange="getLiveQuote()"></select>
           </div>
         </div>
       </div>
@@ -115,6 +114,7 @@
     var userAddress = null;
     var currentFromBal = 0;
     var currentQuoteTx = null;
+    var liveUsd = { ETH: 1700, BTC: 60500, SOL: 71, BNB: 552, USDT: 1, USDC: 1, WBTC: 60500, ARB: 0.45 };
 
     var chainData = {
       mainnet: [
@@ -142,15 +142,15 @@
       ],
       testnet: [
         { id: 11155111, hex: '0xaa36a7', name: 'Sepolia', rpc: 'https://sepolia.org', symbol: 'ETH', tokens: [
-          { sym: 'ETH (Sepolia)', addr: '0x0000000000000000000000000000000000000000', dec: 18 },
-          { sym: 'USDC (Test)', addr: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238', dec: 6 }
+          { sym: 'ETH', addr: '0x0000000000000000000000000000000000000000', dec: 18 },
+          { sym: 'USDC', addr: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238', dec: 6 }
         ]},
         { id: 84532, hex: '0x14a34', name: 'Base Sepolia', rpc: 'https://base.org', symbol: 'ETH', tokens: [
-          { sym: 'ETH (Base Test)', addr: '0x0000000000000000000000000000000000000000', dec: 18 },
-          { sym: 'USDC (Test)', addr: '0x036CbD53842c5426634e7929541eC2318f3dCF7e', dec: 6 }
+          { sym: 'ETH', addr: '0x0000000000000000000000000000000000000000', dec: 18 },
+          { sym: 'USDC', addr: '0x036CbD53842c5426634e7929541eC2318f3dCF7e', dec: 6 }
         ]},
         { id: 11155420, hex: '0xaa37dc', name: 'OP Sepolia', rpc: 'https://optimism.io', symbol: 'ETH', tokens: [
-          { sym: 'ETH (OP Test)', addr: '0x0000000000000000000000000000000000000000', dec: 18 }
+          { sym: 'ETH', addr: '0x0000000000000000000000000000000000000000', dec: 18 }
         ]}
       ]
     };
@@ -158,10 +158,10 @@
     function setStatus(msg) { document.getElementById('status-msg').innerText = msg; }
 
     async function connectWallet() {
-      if (!window.ethereum) { alert('MetaMask বা Trust Wallet অ্যাপের ব্রাউজার ব্যবহার করুন!'); return; }
+      if (!window.ethereum) { alert('MetaMask বা Trust Wallet ব্রাউজার ব্যবহার করুন!'); return; }
       try {
         var accs = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        userAddress = accs;
+        userAddress = String(Array.isArray(accs) ? accs : accs);
         document.getElementById('connect-btn').innerText = '🟢 ' + userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
         document.getElementById('active-net-label').innerText = 'Connected';
         handleFromChainChange();
@@ -210,14 +210,15 @@
 
     function handleTokenChange() { updateBalances(); getLiveQuote(); }
 
-    async function fetchTokenBal(chainObj, tokObj) {
+    async function fetchTokenBal(tokObj) {
       if (!window.ethereum || !userAddress) return 0;
       try {
         if (tokObj.addr === '0x0000000000000000000000000000000000000000') {
           var hex = await window.ethereum.request({ method: 'eth_getBalance', params: [userAddress, 'latest'] });
           return parseInt(hex, 16) / 1e18;
         } else {
-          var data = '0x70a08231000000000000000000000000' + userAddress.slice(2).toLowerCase();
+          var cleanAddr = userAddress.replace('0x', '').toLowerCase();
+          var data = '0x70a08231000000000000000000000000' + cleanAddr;
           var res = await window.ethereum.request({ method: 'eth_call', params: [{ to: tokObj.addr, data: data }, 'latest'] });
           return parseInt(res, 16) / Math.pow(10, tokObj.dec);
         }
@@ -228,7 +229,7 @@
       if (!userAddress) return;
       var fc = chainData[mode][document.getElementById('from-chain').value];
       var ft = fc.tokens[document.getElementById('from-token').value];
-      currentFromBal = await fetchTokenBal(fc, ft);
+      currentFromBal = await fetchTokenBal(ft);
       document.getElementById('from-bal').innerText = currentFromBal.toFixed(4);
     }
 
@@ -255,17 +256,19 @@
       var tc = chainData[mode][document.getElementById('to-chain').value];
       var tt = tc.tokens[document.getElementById('to-token').value];
 
+      var estFallback = ((amt * (liveUsd[ft.sym] || 1)) / (liveUsd[tt.sym] || 1)) * 0.997;
+      document.getElementById('rec-amt').value = estFallback.toFixed(4);
+
       if (mode === 'testnet') {
-        document.getElementById('rec-amt').value = (amt * 0.999).toFixed(4);
         setStatus('Testnet Bridge Ready (' + fc.name + ' -> ' + tc.name + ')');
         return;
       }
 
-      setStatus('Finding best DEX route...');
+      setStatus('Fetching live LI.FI route...');
       try {
         var rawAmt = BigInt(Math.floor(amt * Math.pow(10, ft.dec))).toString();
         var fromAddr = userAddress || '0x0000000000000000000000000000000000000001';
-        var url = `https://li.quest{fc.id}&toChain=${tc.id}&fromToken=${ft.addr}&toToken=${tt.addr}&fromAmount=${rawAmt}&fromAddress=${fromAddr}&integrator=moxiswapio`;
+        var url = 'https://li.quest' + fc.id + '&toChain=' + tc.id + '&fromToken=' + ft.addr + '&toToken=' + tt.addr + '&fromAmount=' + rawAmt + '&fromAddress=' + fromAddr + '&integrator=moxiswapio';
         var res = await fetch(url);
         var data = await res.json();
         if (data.estimate && data.estimate.toAmount) {
@@ -274,8 +277,7 @@
           currentQuoteTx = data.transactionRequest;
           setStatus('Best Rate via ' + (data.toolDetails ? data.toolDetails.name : 'LI.FI'));
         } else {
-          document.getElementById('rec-amt').value = '0.00';
-          setStatus('No direct route for this pair.');
+          setStatus('Estimated market rate shown');
         }
       } catch (e) { setStatus('Ready'); }
     }
@@ -308,19 +310,25 @@
 
     async function loadPrices() {
       try {
-        var res = await fetch('https://coingecko.com');
-        var d = await res.json();
-        var list = [{ s: 'BTC', o: d.bitcoin }, { s: 'ETH', o: d.ethereum }, { s: 'SOL', o: d.solana }, { s: 'BNB', o: d.binancecoin }];
-        document.getElementById('ticker').innerHTML = list.map(i => {
-          var c = i.o.usd_24h_change.toFixed(2);
-          return `<div class="coin-tag"><b>${i.s}</b> $${i.o.usd.toLocaleString()} <span class="${c>=0?'up':'down'}">${c>=0?'+':''}${c}%</span></div>`;
-        }).join('');
-      } catch (e) { document.getElementById('ticker').innerHTML = '<div class="coin-tag">🟢 Multi-Chain Live Market</div>'; }
+        var res = await fetch('https://kraken.com');
+        var j = await res.json();
+        if (j.result) {
+          var btc = parseFloat(j.result.XXBTZUSD.c);
+          var eth = parseFloat(j.result.XETHZUSD.c);
+          var sol = parseFloat(j.result.SOLUSD.c);
+          liveUsd.BTC = btc; liveUsd.WBTC = btc; liveUsd.ETH = eth; liveUsd.SOL = sol;
+          document.getElementById('ticker').innerHTML =
+            '<div class="coin-tag"><b>BTC</b> $' + btc.toLocaleString(undefined, {maximumFractionDigits:0}) + ' <span class="up">● LIVE</span></div>' +
+            '<div class="coin-tag"><b>ETH</b> $' + eth.toLocaleString(undefined, {maximumFractionDigits:2}) + ' <span class="up">● LIVE</span></div>' +
+            '<div class="coin-tag"><b>SOL</b> $' + sol.toLocaleString(undefined, {maximumFractionDigits:2}) + ' <span class="up">● LIVE</span></div>';
+          getLiveQuote();
+        }
+      } catch (e) {}
     }
 
     switchMode('mainnet');
     loadPrices();
-    setInterval(loadPrices, 15000);
+    setInterval(loadPrices, 10000);
   </script>
 </body>
 </html>
