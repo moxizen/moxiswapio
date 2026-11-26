@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MoxiSwap — Live Multi-Chain DEX & Testnet Bridge</title>
+  <title>MoxiSwap — Native Multi-Chain DEX & Testnet Bridge</title>
+  <script src="https://jsdelivr.net"></script>
   <link href="https://googleapis.com" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -11,8 +12,7 @@
     nav { display: flex; justify-content: space-between; align-items: center; padding: 14px 5%; background: rgba(11, 14, 22, 0.9); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.08); position: sticky; top: 0; z-index: 50; }
     .logo { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700; color: #00f0ff; }
     .logo span { color: #ffffff; }
-    .wallet-btn { background: rgba(0, 240, 255, 0.12); border: 1px solid rgba(0, 240, 255, 0.4); color: #00f0ff; padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-    .wallet-btn:hover { background: rgba(0, 240, 255, 0.22); }
+    .wallet-btn { background: rgba(0, 240, 255, 0.12); border: 1px solid rgba(0, 240, 255, 0.4); color: #00f0ff; padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; }
     .ticker-bar { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; padding: 12px 16px; background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
     .coin-tag { background: #121722; border: 1px solid rgba(255, 255, 255, 0.08); padding: 6px 12px; border-radius: 10px; font-size: 12.5px; display: flex; align-items: center; gap: 6px; }
     .up { color: #10b981; font-weight: 600; }
@@ -26,13 +26,15 @@
     .input-panel { background: #090c13; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 15px; margin-bottom: 8px; }
     .panel-header { display: flex; justify-content: space-between; font-size: 12px; color: #9ca3af; margin-bottom: 10px; }
     .panel-body { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-    .amt-field { background: transparent; border: none; color: #ffffff; font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 700; width: 50%; outline: none; }
+    .amt-field { background: transparent; border: none; color: #ffffff; font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 700; width: 48%; outline: none; }
     .selectors { display: flex; gap: 6px; }
-    select { background: #1a2130; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.12); padding: 8px 9px; border-radius: 10px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+    select { background: #1a2130; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.12); padding: 8px 8px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; }
     .flip-btn { width: 36px; height: 36px; background: #1a2130; border: 3px solid #111622; border-radius: 12px; color: #00f0ff; font-size: 16px; display: flex; align-items: center; justify-content: center; margin: -16px auto; position: relative; z-index: 10; cursor: pointer; }
     .details-box { background: rgba(255, 255, 255, 0.03); border-radius: 12px; padding: 12px; margin: 14px 0; font-size: 12px; color: #9ca3af; }
     .detail-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
     .swap-btn { width: 100%; padding: 15px; border: none; border-radius: 15px; background: linear-gradient(135deg, #00d2ff 0%, #7000ff 100%); color: #ffffff; font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; }
+    .swap-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .status-msg { margin-top: 10px; font-size: 12.5px; text-align: center; color: #00f0ff; min-height: 18px; }
     .faucet-row { display: none; gap: 8px; margin-top: 12px; }
     .faucet-row a { flex: 1; text-align: center; padding: 9px; background: #182030; border: 1px solid rgba(0, 240, 255, 0.25); border-radius: 10px; color: #00f0ff; text-decoration: none; font-size: 12px; font-weight: 600; }
     footer { text-align: center; font-size: 12px; color: #6b7280; margin: 25px 0; }
@@ -45,7 +47,7 @@
   </nav>
 
   <div class="ticker-bar" id="ticker">
-    <div class="coin-tag">Fetching live Binance prices...</div>
+    <div class="coin-tag">Loading live market prices...</div>
   </div>
 
   <div class="container">
@@ -60,38 +62,32 @@
       <div class="input-panel">
         <div class="panel-header">
           <span>You Pay</span>
-          <span id="mode-tag">Mainnet Network</span>
+          <span id="bal-label">Balance: --</span>
         </div>
         <div class="panel-body">
-          <input type="number" id="pay-amt" class="amt-field" value="1" min="0" step="any" oninput="calcRate()">
+          <input type="number" id="pay-amt" class="amt-field" value="0.01" min="0" step="any" oninput="getLiveQuote()">
           <div class="selectors">
-            <select id="from-chain"></select>
-            <select id="from-token" onchange="calcRate()">
-              <option value="ETH">ETH</option>
-              <option value="USDT">USDT</option>
-              <option value="BNB">BNB</option>
-              <option value="SOL">SOL</option>
+            <select id="from-chain" onchange="handleChainChange()"></select>
+            <select id="from-token" onchange="getLiveQuote()">
+              <option value="NATIVE">Native (ETH/BNB)</option>
             </select>
           </div>
         </div>
       </div>
 
-      <div class="flip-btn" onclick="flipTokens()">⇅</div>
+      <div class="flip-btn" onclick="flipChains()">⇅</div>
 
       <div class="input-panel">
         <div class="panel-header">
-          <span>You Receive (Live Est.)</span>
-          <span id="usd-est">Loading live rate...</span>
+          <span>You Receive (Est.)</span>
+          <span id="route-tag">Direct On-Chain Execution</span>
         </div>
         <div class="panel-body">
-          <input type="text" id="rec-amt" class="amt-field" value="..." readonly>
+          <input type="text" id="rec-amt" class="amt-field" value="0.00" readonly>
           <div class="selectors">
-            <select id="to-chain"></select>
-            <select id="to-token" onchange="calcRate()">
-              <option value="USDT">USDT</option>
-              <option value="ETH">ETH</option>
-              <option value="BNB">BNB</option>
-              <option value="SOL">SOL</option>
+            <select id="to-chain" onchange="getLiveQuote()"></select>
+            <select id="to-token" onchange="getLiveQuote()">
+              <option value="NATIVE">Native (ETH/BNB)</option>
             </select>
           </div>
         </div>
@@ -99,16 +95,17 @@
 
       <div class="details-box">
         <div class="detail-row">
-          <span>Aggregator Route</span>
-          <span style="color:#00f0ff; font-weight:600;" id="router-label">LI.FI Smart Router (moxiswapio)</span>
+          <span>Execution Mode</span>
+          <span style="color:#10b981; font-weight:600;">In-App Direct Wallet Pop-up (No Redirect)</span>
         </div>
         <div class="detail-row">
-          <span>Price Feed</span>
-          <span style="color:#10b981;">● Binance Real-Time API</span>
+          <span>Integrator ID</span>
+          <span style="color:#00f0ff;">moxiswapio</span>
         </div>
       </div>
 
-      <button class="swap-btn" id="main-cta" onclick="launchTrade()">⚡ Swap & Bridge Now</button>
+      <button class="swap-btn" id="main-cta" onclick="executeInAppTrade()">⚡ Swap / Bridge Directly</button>
+      <div class="status-msg" id="status-msg"></div>
 
       <div class="faucet-row" id="faucet-links">
         <a href="https://google.com" target="_blank">💧 Sepolia Faucet</a>
@@ -116,27 +113,57 @@
       </div>
     </div>
 
-    <footer>© 2026 MoxiSwap • Non-Custodial Multi-Chain DEX & Bridge</footer>
+    <footer>© 2026 MoxiSwap • Native Web3 DEX & Cross-Chain Bridge</footer>
   </div>
 
   <script>
     let mode = 'mainnet';
-    let livePrices = { USDT: 1 };
-    const mainChains = [{ id: '1', name: 'Ethereum' }, { id: '56', name: 'BNB Chain' }, { id: '137', name: 'Polygon' }, { id: '42161', name: 'Arbitrum' }, { id: '8453', name: 'Base' }];
-    const testChains = [{ id: '11155111', name: 'Sepolia' }, { id: '84532', name: 'Base Sepolia' }, { id: '421614', name: 'Arb Sepolia' }, { id: '11155420', name: 'OP Sepolia' }];
+    let userAddress = null;
+    let provider = null;
+    let signer = null;
+    let currentQuoteTx = null;
+
+    const mainChains = [
+      { id: 1, hex: '0x1', name: 'Ethereum' },
+      { id: 56, hex: '0x38', name: 'BNB Chain' },
+      { id: 137, hex: '0x89', name: 'Polygon' },
+      { id: 42161, hex: '0xa4b1', name: 'Arbitrum' },
+      { id: 8453, hex: '0x2105', name: 'Base' }
+    ];
+
+    const testChains = [
+      { id: 11155111, hex: '0xaa36a7', name: 'Sepolia' },
+      { id: 84532, hex: '0x14a34', name: 'Base Sepolia' },
+      { id: 421614, hex: '0x66eee', name: 'Arb Sepolia' },
+      { id: 11155420, hex: '0xaa37dc', name: 'OP Sepolia' }
+    ];
 
     async function connectWallet() {
-      if (typeof window.ethereum !== 'undefined') {
-        try {
-          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-          const acc = accounts[0];
-          document.getElementById('connect-btn').innerText = '🟢 ' + acc.slice(0, 6) + '...' + acc.slice(-4);
-        } catch (err) {
-          alert('Wallet connection rejected.');
-        }
-      } else {
-        alert('Please install MetaMask or open inside Trust Wallet browser!');
+      if (!window.ethereum) {
+        alert('MetaMask বা Trust Wallet ব্রাউজার ব্যবহার করুন!');
+        return;
       }
+      try {
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        signer = provider.getSigner();
+        userAddress = await signer.getAddress();
+        document.getElementById('connect-btn').innerText = '🟢 ' + userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
+        updateBalance();
+        getLiveQuote();
+      } catch (e) {
+        setStatus('Wallet connection cancelled.');
+      }
+    }
+
+    async function updateBalance() {
+      if (!provider || !userAddress) return;
+      const bal = await provider.getBalance(userAddress);
+      document.getElementById('bal-label').innerText = 'Bal: ' + parseFloat(ethers.utils.formatEther(bal)).toFixed(4);
+    }
+
+    function setStatus(msg) {
+      document.getElementById('status-msg').innerText = msg;
     }
 
     function switchMode(selected) {
@@ -146,64 +173,118 @@
       const fc = document.getElementById('from-chain');
       const tc = document.getElementById('to-chain');
       const list = mode === 'mainnet' ? mainChains : testChains;
-      fc.innerHTML = list.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      fc.innerHTML = list.map(c => `<option value="${c.id}" data-hex="${c.hex}">${c.name}</option>`).join('');
       tc.innerHTML = list.map((c, idx) => `<option value="${c.id}" ${idx === 1 ? 'selected' : ''}>${c.name}</option>`).join('');
-      document.getElementById('mode-tag').innerText = mode === 'mainnet' ? 'Mainnet Network' : 'Testnet Network';
-      document.getElementById('router-label').innerText = mode === 'mainnet' ? 'LI.FI Smart Router (moxiswapio)' : 'Superbridge Testnet Router';
-      document.getElementById('main-cta').innerText = mode === 'mainnet' ? '⚡ Swap & Bridge Now' : '🧪 Bridge Testnet Tokens';
       document.getElementById('faucet-links').style.display = mode === 'mainnet' ? 'none' : 'flex';
-      calcRate();
+      handleChainChange();
     }
 
-    function calcRate() {
-      const val = parseFloat(document.getElementById('pay-amt').value) || 0;
-      const ft = document.getElementById('from-token').value;
-      const tt = document.getElementById('to-token').value;
-      if (!livePrices[ft] || !livePrices[tt]) return;
-      const usdValue = val * livePrices[ft];
-      const out = (usdValue / livePrices[tt]) * 0.997;
-      document.getElementById('rec-amt').value = out > 0 ? out.toFixed(4) : '0.00';
-      document.getElementById('usd-est').innerText = '~$' + usdValue.toFixed(2);
+    async function handleChainChange() {
+      const fc = document.getElementById('from-chain');
+      const hexChain = fc.options[fc.selectedIndex].getAttribute('data-hex');
+      if (window.ethereum && userAddress) {
+        try {
+          await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: hexChain }] });
+          provider = new ethers.providers.Web3Provider(window.ethereum);
+          signer = provider.getSigner();
+          updateBalance();
+        } catch (err) {
+          setStatus('Please switch network in your wallet.');
+        }
+      }
+      getLiveQuote();
     }
 
-    function flipTokens() {
-      const f = document.getElementById('from-token');
-      const t = document.getElementById('to-token');
-      const tmp = f.value; f.value = t.value; t.value = tmp;
-      calcRate();
+    function flipChains() {
+      const fc = document.getElementById('from-chain');
+      const tc = document.getElementById('to-chain');
+      const tmp = fc.selectedIndex;
+      fc.selectedIndex = tc.selectedIndex;
+      tc.selectedIndex = tmp;
+      handleChainChange();
     }
 
-    function launchTrade() {
-      if (mode === 'mainnet') {
-        const fc = document.getElementById('from-chain').value;
-        const tc = document.getElementById('to-chain').value;
-        window.open(`https://jumper.exchange{fc}&toChain=${tc}&integrator=moxiswapio`, '_blank');
-      } else {
-        window.open('https://superbridge.app', '_blank');
+    async function getLiveQuote() {
+      const amt = parseFloat(document.getElementById('pay-amt').value) || 0;
+      const fromChain = document.getElementById('from-chain').value;
+      const toChain = document.getElementById('to-chain').value;
+      if (amt <= 0) { document.getElementById('rec-amt').value = '0.00'; return; }
+
+      if (mode === 'testnet') {
+        document.getElementById('rec-amt').value = (amt * 0.999).toFixed(4);
+        setStatus('Testnet Bridge Ready (Sepolia L2 Standard Bridge)');
+        return;
+      }
+
+      setStatus('Fetching real-time route from LI.FI...');
+      try {
+        const weiAmt = ethers.utils.parseEther(amt.toString()).toString();
+        const fromAddr = userAddress || '0x0000000000000000000000000000000000000001';
+        const url = `https://li.quest{fromChain}&toChain=${toChain}&fromToken=0x0000000000000000000000000000000000000000&toToken=0x0000000000000000000000000000000000000000&fromAmount=${weiAmt}&fromAddress=${fromAddr}&integrator=moxiswapio`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.estimate && data.estimate.toAmount) {
+          const outEth = ethers.utils.formatEther(data.estimate.toAmount);
+          document.getElementById('rec-amt').value = parseFloat(outEth).toFixed(5);
+          currentQuoteTx = data.transactionRequest;
+          setStatus('Route Ready via ' + (data.toolDetails?.name || 'LI.FI'));
+        } else {
+          document.getElementById('rec-amt').value = 'No Route';
+          setStatus(data.message || 'Try a different amount or network.');
+        }
+      } catch (e) {
+        setStatus('Ready to connect wallet for quote.');
+      }
+    }
+
+    async function executeInAppTrade() {
+      if (!userAddress || !signer) {
+        await connectWallet();
+        return;
+      }
+      if (mode === 'testnet') {
+        // সরাসরি Sepolia থেকে Base Sepolia অফিসিয়াল L2 ব্রিজ কন্ট্রাক্টে ইন-অ্যাপ ট্রানজ্যাকশন
+        const amt = document.getElementById('pay-amt').value;
+        const toChain = document.getElementById('to-chain').value;
+        const bridgeContracts = {
+          '84532': '0xfd0Bf71F60660E2f608ed56e1659C450eB113120', // Base Sepolia L1 Standard Bridge
+          '11155420': '0xFBb0621E0B23b5478B630BD55a5f21f67730B0F1' // OP Sepolia L1 Standard Bridge
+        };
+        const targetBridge = bridgeContracts[toChain];
+        if (!targetBridge) {
+          setStatus('Select Sepolia -> Base Sepolia or OP Sepolia for direct bridge!');
+          return;
+        }
+        try {
+          setStatus('Confirm Testnet Bridge in your wallet...');
+          const tx = await signer.sendTransaction({
+            to: targetBridge,
+            value: ethers.utils.parseEther(amt.toString())
+          });
+          setStatus('Bridge Tx Sent! Hash: ' + tx.hash.slice(0, 12) + '...');
+        } catch (err) {
+          setStatus('Transaction cancelled or insufficient Sepolia ETH.');
+        }
+        return;
+      }
+
+      if (!currentQuoteTx) {
+        await getLiveQuote();
+        if (!currentQuoteTx) return;
+      }
+      try {
+        setStatus('Confirm Mainnet Swap in your wallet...');
+        const tx = await signer.sendTransaction({
+          to: currentQuoteTx.to,
+          data: currentQuoteTx.data,
+          value: currentQuoteTx.value
+        });
+        setStatus('Swap Submitted! Hash: ' + tx.hash.slice(0, 12) + '...');
+      } catch (err) {
+        setStatus('Swap rejected or insufficient gas.');
       }
     }
 
     async function fetchBinanceLive() {
       try {
         const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT'];
-        const res = await fetch('https://binance.com' + encodeURIComponent(JSON.stringify(symbols)));
-        const data = await res.json();
-        let html = '';
-        data.forEach(item => {
-          const sym = item.symbol.replace('USDT', '');
-          const price = parseFloat(item.lastPrice);
-          const chg = parseFloat(item.priceChangePercent).toFixed(2);
-          livePrices[sym] = price;
-          html += `<div class="coin-tag"><b>${sym}</b> $${price.toLocaleString(undefined, {maximumFractionDigits: 2})} <span class="${chg >= 0 ? 'up' : 'down'}">${chg >= 0 ? '+' : ''}${chg}%</span></div>`;
-        });
-        document.getElementById('ticker').innerHTML = html;
-        calcRate();
-      } catch (e) {}
-    }
-
-    switchMode('mainnet');
-    fetchBinanceLive();
-    setInterval(fetchBinanceLive, 5000);
-  </script>
-</body>
-</html>
